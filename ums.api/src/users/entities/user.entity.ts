@@ -26,6 +26,12 @@ export class User {
   @Column({ enum: Role, default: Role.Regular })
   role: Role;
 
+  @Column({ default: false })
+  isTfaEnabled: boolean;
+
+  @Column({ nullable: true })
+  tfaSecret: string;
+
   @JoinTable()
   @OneToMany((type) => ApiKey, (apiKey) => apiKey.user)
   apiKeys: ApiKey[];

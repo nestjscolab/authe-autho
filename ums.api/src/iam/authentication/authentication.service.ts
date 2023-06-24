@@ -16,6 +16,7 @@ import { ActiveUserData } from '../interfaces/active-user-data.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
+import { OtpAuthenticationService } from './otp-authentication.service';
 import { RefreshTokenIdsStorage } from './refresh-token-ids.storage/refresh-token-ids.storage';
 import { InvalidatedRefreshTokenError } from './refresh-token-ids.storage/Invalidated-refresh-token.error';
 
@@ -28,6 +29,7 @@ export class AuthenticationService {
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly refreshTokenIdsStorage: RefreshTokenIdsStorage,
+    private readonly otpAuthService: OtpAuthenticationService, // 👈
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -60,6 +62,15 @@ export class AuthenticationService {
     if (!isEqual) {
       throw new UnauthorizedException('Password does not match');
     }
+    if (user.isTfaEnabled) {
+      const isValid = this.otpAuthService.verifyCode(
+        signInDto.tfaCode,
+        user.tfaSecret,
+      );
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid 2FA code');
+      }
+    }
     return await this.generateTokens(user);
   }
 
@@ -73,7 +84,7 @@ export class AuthenticationService {
           email: user.email,
           role: user.role,
           // ⚠️ WARNING
-          permissions: user.permissions, // 👈👈👈
+          permissions: user.permissions,
         },
       ),
       this.signToken(user.id, this.jwtConfiguration.refreshTokenTtl, {
