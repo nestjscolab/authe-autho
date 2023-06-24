@@ -29,10 +29,10 @@ export class SessionAuthenticationController {
   @Post('sign-in')
   async signIn(@Req() request: Request, @Body() signInDto: SignInDto) {
     const user = await this.sessionAuthService.signIn(signInDto);
-    await promisify(request.logIn).call(request, user); // 👈  This line is NEW
+    await promisify(request.logIn).call(request, user);
   }
 
-  @UseGuards(SessionGuard) // 👈
+  @UseGuards(SessionGuard)
   @Get()
   async sayHello(@ActiveUser() user: ActiveUserData) {
     return `Hello, ${user.email}!`;
