@@ -20,7 +20,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({ enum: Role, default: Role.Regular })
@@ -29,6 +29,9 @@ export class User {
   @JoinTable()
   @OneToMany((type) => ApiKey, (apiKey) => apiKey.user)
   apiKeys: ApiKey[];
+
+  @Column({ nullable: true })
+  googleId: string;
 
   // -----
   // 📝 ADDITIONS - user.entity.ts - add permissions prop
